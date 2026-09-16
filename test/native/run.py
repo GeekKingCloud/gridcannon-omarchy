@@ -102,6 +102,9 @@ try:
     typed('d'); equal_game(fixtures['states'][6])
     action(24); typed('5'); assert snapshot()['source']==4
     shot('ploy-source')
+    check_inks()  # held red card as well as grid and royal labels
+    ipc('test','theme','light'); shot('held-red-light'); check_inks()
+    ipc('test','theme','dark')
     ipc('geekkingcloud.gridcannon','close'); ipc('geekkingcloud.gridcannon','open'); time.sleep(.2)
     assert snapshot()['source']==4; equal_game(fixtures['states'][6])
     typed('9'); equal_game(fixtures['states'][7])
