@@ -114,6 +114,19 @@ Panel {
     var royal = game.royals[id-9]
     return royal ? Engine.label(royal.card) + (royal.dead ? " ×" : "") : "·"
   }
+  function cardAt(id) {
+    if (id < 0) return null
+    if (id < 9) return Engine.top(game.grid[id])
+    var royal = game.royals[id-9]
+    return royal ? royal.card : null
+  }
+  function cardInk(card) {
+    // Theme red, not the selection accent; black suits use readable theme ink.
+    if (!card || Engine.color(card) !== "red") return Color.popups.text
+    var dark = Color.popups.background.hslLightness < 0.5
+    return Qt.hsla(Color.urgent.hslHue, Math.max(0.55, Color.urgent.hslSaturation),
+                   dark ? Math.max(0.68, Color.urgent.hslLightness) : Math.min(0.42, Color.urgent.hslLightness), 1)
+  }
   function cardDetail(id) {
     if (id < 9) return (id+1) + " · " + game.grid[id].length + (game.grid[id].length === 1 ? " card" : " cards")
     var r = game.royals[id-9]
@@ -229,6 +242,7 @@ Panel {
                   objectName: "gridcannon-cell-" + modelData
                   visible: modelData >= 0
                   text: modelData >= 0 ? root.cardText(modelData) : ""
+                  labelColor: root.cardInk(root.cardAt(modelData))
                   detail: modelData >= 0 ? root.cardDetail(modelData) : ""
                   legal: modelData >= 0 && root.available(modelData)
                   selected: root.cursor === modelData
@@ -239,14 +253,29 @@ Panel {
               }
             }
           }
-          Text {
+          Flow {
             visible: !root.helpOpen && !root.confirmation
             width: parent.width
-            text: "Hand: " + (root.game.pending ? Engine.label(root.game.pending) : "—") + "   Deck: " + root.game.deck.length + (root.game.mode === "revised" ? "   Aces: " + root.game.ploys.filter(c => c.rank === 1).length + "   Jokers: " + root.game.ploys.filter(c => c.rank === 0).length : "   Shame: " + root.game.shame.length)
-            color: Color.popups.text
-            font.family: Style.font.family
-            font.pixelSize: Style.font.body
-            wrapMode: Text.WordWrap
+            spacing: Style.spacing.sm
+            Text {
+              text: "Hand:"
+              color: Color.popups.text
+              font.family: Style.font.family
+              font.pixelSize: Style.font.body
+            }
+            Text {
+              objectName: "gridcannon-hand"
+              text: root.game.pending ? Engine.label(root.game.pending) : "—"
+              color: root.cardInk(root.game.pending)
+              font.family: Style.font.family
+              font.pixelSize: Style.font.body
+            }
+            Text {
+              text: "Deck: " + root.game.deck.length + (root.game.mode === "revised" ? "   Aces: " + root.game.ploys.filter(c => c.rank === 1).length + "   Jokers: " + root.game.ploys.filter(c => c.rank === 0).length : "   Shame: " + root.game.shame.length)
+              color: Color.popups.text
+              font.family: Style.font.family
+              font.pixelSize: Style.font.body
+            }
           }
           Text {
             visible: !root.helpOpen && !root.confirmation

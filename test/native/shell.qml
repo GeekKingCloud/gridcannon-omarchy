@@ -54,8 +54,7 @@ ShellRoot {
       return JSON.stringify({game:game.game, opened:game.opened, cursor:game.cursor, tool:game.tool, source:game.source, confirmation:game.confirmation, help:game.helpOpen, notice:game.notice, accent:Color.accent.toString(), foreground:Color.foreground.toString()})
     }
     function action(id: int): void { game.activate(id) }
-    function click(id: int): void {
-      var name = "gridcannon-cell-" + id
+    function findItem(name: string): var {
       var item = mouseDriver.findChild(game, name)
       // KeyboardPanel.contentItem is an alias to a list, not a QQuickItem.
       for (var i = 0; !item && i < game.resources.length; ++i) {
@@ -64,7 +63,20 @@ ShellRoot {
         for (var j = 0; !item && j < contents.length; ++j)
           item = mouseDriver.findChild(contents[j], name)
       }
-      if (!item) throw new Error("Missing native cell " + id)
+      if (!item) throw new Error("Missing native item " + name)
+      return item
+    }
+    function inks(): string {
+      var cells = []
+      for (var id = 0; id < 21; id++) {
+        var card = game.cardAt(id)
+        if (card) cells.push({suit:card.suit, ink:findItem("gridcannon-cell-" + id).labelColor.toString()})
+      }
+      return JSON.stringify({cells:cells, hand:findItem("gridcannon-hand").color.toString(),
+        pending:game.game.pending, neutral:Color.popups.text.toString()})
+    }
+    function click(id: int): void {
+      var item = findItem("gridcannon-cell-" + id)
       mouseDriver.mouseClick(item, item.width/2, item.height/2)
     }
     function fixture(name: string): void {

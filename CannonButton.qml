@@ -5,6 +5,7 @@ import qs.Ui
 BorderSurface {
   id: root
   property string text: ""
+  property color labelColor: Color.popups.text
   property string detail: ""
   property bool legal: true
   property bool selected: false
@@ -29,7 +30,7 @@ BorderSurface {
       id: label
       width: parent.width
       text: (root.selected ? "› " : root.marked ? "• " : "") + root.text
-      color: Color.popups.text
+      color: root.labelColor
       font.family: Style.font.family
       font.pixelSize: Style.font.body
       horizontalAlignment: Text.AlignHCenter

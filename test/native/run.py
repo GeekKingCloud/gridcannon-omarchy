@@ -67,6 +67,15 @@ def equal_game(expected):
 
 def action(id): ipc('test','action',id)
 
+def check_inks():
+    rendered = json.loads(ipc('test', 'inks'))
+    red = {c['ink'] for c in rendered['cells'] if c['suit'] in ['H', 'D']}
+    black = {c['ink'] for c in rendered['cells'] if c['suit'] in ['S', 'C']}
+    assert len(red) == 1 and black == {rendered['neutral']} and red.isdisjoint(black), rendered
+    if rendered['pending']:
+        expected = red if rendered['pending']['suit'] in ['H', 'D'] else black
+        assert rendered['hand'] in expected, rendered
+
 try:
     with (OUT/'sway.log').open('w') as log:
         processes.append(subprocess.Popen(['sway','--unsupported-gpu','-c',str(OUT/'sway.conf')],env=env,stdout=log,stderr=subprocess.STDOUT))
@@ -83,6 +92,7 @@ try:
     shot('closed-dark')
     ipc('geekkingcloud.gridcannon','open'); time.sleep(.25)
     shot('open-dark')
+    check_inks()
     # Tab chooses Keep deal; Enter activates it through the real key catcher.
     key('Tab','Return'); equal_game(fixtures['states'][0])
     typed('d'); equal_game(fixtures['states'][1])
@@ -96,6 +106,7 @@ try:
     assert snapshot()['source']==4; equal_game(fixtures['states'][6])
     typed('9'); equal_game(fixtures['states'][7])
     shot('suspended-hand')
+    check_inks()
     a=fixtures['actions'][8]; action(a['index']+9); equal_game(fixtures['states'][8])
     a=fixtures['actions'][9]; action(a['index']+9); equal_game(fixtures['states'][9])
     shot('armour-resolved')
@@ -118,9 +129,11 @@ try:
         shot(expected)
     ipc('test','fixture','start')
     ipc('test','theme','light'); shot('open-light-live')
+    check_inks()
     ipc('geekkingcloud.gridcannon','close'); shot('closed-light-live')
     ipc('geekkingcloud.gridcannon','open'); time.sleep(.2)
     ipc('test','theme','mono'); shot('open-mono-live')
+    check_inks()
     for orientation in ['bottom','left','right','top']:
         ipc('geekkingcloud.gridcannon','close')
         ipc('test','orientation',orientation)
