@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "geekkingcloud.gridcannon",
+  "name": "Grid Cannon",
+  "version": "0.2.0",
+  "author": "GeekKingCloud",
+  "description": "Native card solitaire for Omarchy",
+  "kinds": ["bar-widget"],
+  "entryPoints": {"barWidget": "BarWidget.qml"},
+  "barWidget": {"displayName": "Grid Cannon", "category": "Fun", "allowMultiple": false, "defaultSection": "right"}
+}

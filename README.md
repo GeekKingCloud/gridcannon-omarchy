@@ -1,111 +1,112 @@
-# Omarchy Gridcannon
+# Omarchy Grid Cannon
 
-A local, keyboard-friendly adaptation of **Gridcannon by Tom Francis**, styled with a Tokyo Night–inspired palette and monospace interface to sit comfortably alongside Omarchy.
+A **native Quickshell bar plugin** adapting Gridcannon by Tom Francis. A quiet 3×3 board with thin live-theme borders, twelve surrounding royal slots, and mouse/keyboard controls. No WebView, browser, web server, service, runtime Node dependency, remote assets, analytics, or copied card artwork.
 
-This is a standalone browser-app candidate, **not a Quickshell plugin or an official Omarchy component**. No runtime dependencies, external fonts, accounts, analytics, or remote assets. The interface, card designs, and icon are original CSS/SVG; suit glyphs use your installed font.
+Targets **Omarchy v4.0.4** (`c668141e9c42b13c80c9ca4ea108e11708c5e8a5`). This is an independent local candidate, not an official Omarchy component or a published release. The native `Panel` / `BarIconButton` / `KeyboardPanel` integration follows the [Snake plugin pattern](https://github.com/jhgundersen/omarchy-snake-plugin/blob/2e5afd4adc2a19e56be621561663fa9a7a79ffc3/Panel.qml). Colours, borders, fonts and scale come from Omarchy's live `Color`, `Border` and `Style` objects, not a bundled palette.
 
-## Run
+## Install and remove
 
-Requires Node.js 22 or newer. From this directory:
+Requires Omarchy's Quickshell shell/plugin system from the target release and its normal dependencies. An older Waybar-only Omarchy installation is not supported. Review this unsandboxed in-process plugin before enabling it.
 
-```sh
-npm start
-```
-
-Open **http://127.0.0.1:4173**. No package installation is needed to play. The server binds only to loopback and serves an explicit allowlist of app assets, not the repository.
-
-For a desktop-style window, with Chromium installed:
+For a reviewed **local checkout**, copy only the production files into a new plugin directory (do not overwrite an existing installation):
 
 ```sh
-chromium --app=http://127.0.0.1:4173
+plugin="$HOME/.config/omarchy/plugins/geekkingcloud.gridcannon"
+mkdir -p "$(dirname "$plugin")"
+mkdir "$plugin"
+cp manifest.json BarWidget.qml CannonButton.qml engine.mjs "$plugin/"
+omarchy plugin validate "$plugin"
+omarchy-shell shell rescanPlugins
+omarchy plugin enable geekkingcloud.gridcannon
 ```
 
-Keep the server running while playing. Stop it with Ctrl+C. This repository does not install a launcher, persistent service, or change your Omarchy configuration. Another local port can be selected with `PORT=4180 npm start`.
+The widget defaults to the right bar section; move it through Omarchy's bar settings. Click the grid icon to toggle it. While enabled, its IPC target also supports:
 
-Games live in memory: refreshing or closing the page ends the current game. Starting a new game or changing mode asks for confirmation. There is deliberately no undo or timed play.
+```sh
+omarchy-shell geekkingcloud.gridcannon open
+omarchy-shell geekkingcloud.gridcannon close
+omarchy-shell geekkingcloud.gridcannon toggle
+```
 
-## Play
+Remove using `omarchy plugin remove geekkingcloud.gridcannon` (interactive confirmation). Disabling/removing/unloading it ends the in-memory game. No daemon, service, theme files or persistent saved-game files require cleanup. These are instructions, **not actions performed by the test suite**. No installation on the owner's machine or publication has been performed.
 
-Defeat the twelve royals bordering a 3×3 grid. Play numbers on equal or lower numbers, or on empty spaces. A play at the opposite end of a row or column fires the **two intervening cards**, not the card you just played. Shots do not consume the payload.
+Closing and reopening the popup preserves the game, pending card and ploy selection because state belongs to the persistent bar widget, not the popup. A shell restart, plugin reload, or removing the widget discards that state. New game and mode changes require confirmation. There is no undo, timer or leaderboard.
+
+## Controls
+
+- Click a legal grid/royal cell or action. Accent borders identify legal targets; a `›` marker and a subtle fill indicate keyboard selection. Suit glyphs keep colour groups distinguishable with a monochrome theme.
+- **1–9:** grid cells in reading order. During the revised opening this replaces that cell once; choose **Keep deal** instead to skip replacement.
+- **D:** draw. **Tab / Shift+Tab:** cycle legal targets/actions. **Arrows:** spatial movement on the board; move among actions outside it. **Enter / Space:** activate the selected target, not an implicit draw.
+- **Extract:** select a grid stack. **Reassign:** select a source and then a distinct legal destination; **Escape** or **Cancel** cancels the selection without spending the ploy.
+- A blocked number with no revised ploys can be clicked onto a highlighted royal as **armour**. In classic mode, **Hard reset** selects a stack to recycle while shaming the blocked card; **Recycle** selects a stack when the deck is empty.
+- **N:** request a new game. **Mode:** request switching Classic/Revised. Confirmation defaults to Cancel; **Tab / arrows** change the choice, **Enter** activates it, **Y** confirms, **Escape** cancels.
+- **? / Rules:** native help. Arrow keys or wheel scroll long help. **Escape** dismisses confirmation, help, selection, then popup in that order.
+
+## Rules
+
+Defeat the twelve royals bordering the 3×3 grid. Play numbers on equal or lower numbers, or empty spaces. A play at the opposite end of a row or column fires the **two intervening cards**, not the card just played. Shots do not consume the payload.
 
 | Royal | Base health | Payload cards that count |
 | ----- | ----------: | ------------------------ |
-| Jack  |          11 | Any suit                 |
-| Queen |          12 | Same colour as the queen |
-| King  |          13 | Same suit as the king    |
+| Jack | 11 | Any suit |
+| Queen | 12 | Same colour as the queen |
+| King | 13 | Same suit as the king |
 
-A failed shot does nothing; it does **not** immediately lose the game. Defeated royals remain in their slots. When no living royals remain, drawing skips non-royals, returning those cards beneath the deck, until a royal is found.
-
-Green borders mark legal targets. Royal badges show **current payload / health**, with a diamond marking added armour. Hover or focus a grid card for its firing-line preview. Royal placement chooses the highest eligible matching suit, then colour, then any suit; choose freely among ties.
-
-- Click a card or use **1–9** for the grid in reading order.
-- **Space** draws when focus is not on another interactive control.
-- **Tab / Enter / Space** operate focused controls normally.
-- **N** requests a new game; **?** opens rules; **Escape** cancels a ploy selection or dismisses a dialog.
+A failed shot does nothing; it does not immediately lose the game. Defeated royals remain in their slots. With no living royals, cycle non-royals beneath the deck until a royal is found. Royal placement chooses the highest eligible adjacent card of matching suit, then colour, then any suit; choose among ties. Living royal labels show current payload / health and added armour.
 
 ### Classic · creator's original v1
 
-Start with eight non-royals and an empty centre. Aces (value 1) and jokers (value 0) are playable resets: return the old stack under the deck and leave the special card in its place. A blocked number can either become armour or go to the shame pile while you recycle a stack. When the deck is empty, sacrifice a stack's top card to shame and use the rest as the new deck. Win with the smallest shame pile possible.
+Start with eight non-royals and an empty centre. Aces (1) and jokers (0) are playable resets: return the old stack beneath the deck, leaving the special card in its place. A blocked number can become armour or go to the shame pile while a chosen stack is recycled. When the deck is empty, sacrifice a stack's top card to shame and use the rest as the new deck. Win with the smallest shame pile possible.
 
 ### Revised · creator's v2
 
-Start with nine number cards. Optionally replace one during the opening. Aces and jokers are banked as single-use **ploys**:
+Start with nine numbers; optionally replace one during setup. Bank aces and jokers as single-use ploys:
 
-- **Ace / extraction:** recycle a whole stack under the deck, leaving a blank slot. Can be used before placing a pending draw.
-- **Joker / reassignment:** move a single top card to a different legal position; the move can fire a shot.
+- **Ace / extraction:** recycle a whole stack beneath the deck, leaving an empty slot. A pending draw is preserved.
+- **Joker / reassignment:** move one top card to a different legal position; that move can fire a shot.
 
-If a drawn number cannot be placed and no ploys remain, it becomes **armour** on the lowest-ranked living royal of matching suit, then matching colour, then any suit. Armour adds its value to that royal's health and stacks. Following the creator's stated v2 thresholds, 20+ health (19+ for a king) ends the game. An empty deck with no remaining ploys also ends it, after resolving the last drawn card. Unspent ploys are the winning score, up to six.
+If a number cannot be placed and no ploys remain, add it as armour to the lowest-ranked living royal of matching suit, then matching colour, then any suit. Armour stacks. The creator's stated v2 thresholds end the game at 20+ health (19+ for a king). An empty deck with no remaining ploys also ends play after resolving the final drawn card. Unspent ploys are the winning score, up to six.
 
-## Source and interpretation notes
+## Sources, interpretation and licensing
 
-Primary source: [Tom Francis, “Gridcannon: A Single Player Game With Regular Playing Cards”](https://www.pentadact.com/2019-08-20-gridcannon-a-single-player-game-with-regular-playing-cards/). The visible **Version 2** section defines revised mode; expand **“Show the old version”** to read **Gridcannon v1 (old)**. The intervening “Revisions To Old Version” section is historical discussion, not a third implemented mode.
+Primary rules: [Tom Francis, “Gridcannon: A Single Player Game With Regular Playing Cards”](https://www.pentadact.com/2019-08-20-gridcannon-a-single-player-game-with-regular-playing-cards/). The visible **Version 2** section defines revised mode; expand **“Show the old version”** for the original v1. The intervening revisions discussion is not a third implemented mode.
 
-The author explicitly welcomes digital adaptations and asks for attribution and a title beyond just “Gridcannon”. Credit for the armour idea goes to Chris Thursten. This implementation does not copy the article, footage, illustrations, or commercial game assets.
+The author welcomes digital adaptations, requests attribution and a title beyond just “Gridcannon”, and credits Chris Thursten for armour. This implementation does not copy article text, footage, illustrations, commercial art or third-party plugin code. It uses original QML shapes/text and the installed font's suit glyphs. The inherited repository contains **no software LICENSE**; this candidate does not invent a licence or claim permission to relicense it. Choose/approve a code licence before public distribution. Adaptation permission is not a software licence grant.
 
-The source calls the mechanic **armour**, not shields or extra turns. The published original v1 uses shame and recycling rather than the v2 hard-failure economy. Those are intentionally separate modes, not a hybrid inferred from third-party versions.
+The source leaves some digital details unspecified. These conventions are retained from the corrected rules engine, not a new house variant:
 
-The physical rules leave some digital details unspecified. This candidate uses these explicit conventions:
+1. Only unoccupied exterior positions participate in royal similarity; the centre has no exterior neighbour. Defeated royals still occupy slots. If all eligible neighbours are empty, remaining positions tie.
+2. Recycled stacks preserve bottom-to-top order. The first deck card is drawn.
+3. An optional revised replacement banks specials, queues royals, and continues to a number for the vacated grid slot.
+4. Armour similarity uses printed royal rank, not accumulated health. Classic's abbreviated armour rule uses the general suit/colour fallback. Classic hard reset recycles beneath the deck, like its ordinary reset.
+5. Revised uses the stated 20/19 thresholds verbatim. Classic keeps its open-ended reset economy, with no added forced loss for an over-armoured royal; such a choice can become unwinnable.
+6. A victory after exhausting the deck still displays unspent ploys; it is not claimed as an official scored run. The article explicitly scores wins without running out of cards.
+7. If the last ploy kills the last living royal with a blocked number still pending, suspend that number, cycle to/deploy the next royal, then restore the number for resolution (normally armour). Preserve all 54 identities and cycled order. The twelfth kill wins immediately instead.
 
-1. Only **unoccupied border positions** participate in royal-placement similarity; the centre is ineligible because it has no exterior neighbour. Defeated royals still block slots. If all neighbouring grid cards are empty, all remaining border positions tie.
-2. Stacks returned to the deck preserve bottom-to-top order. Deck draws take the first card.
-3. If an optional v2 replacement reveals specials, bank them; queue royals for placement and continue to a number for the vacated grid slot. The source's single “draw a new card” does not fully specify this case.
-4. Armour similarity uses a royal's printed rank, not its accumulated health. Original v1's abbreviated armour rule uses the same suit/colour fallback as its general similarity rule. Original hard reset returns the selected stack under the deck, like its ordinary reset.
-5. Revised uses the author's stated 20/19 armour loss thresholds verbatim rather than silently changing the 20 boundary. Classic retains its original open-ended reset economy; it has no added forced-loss rule for an over-armoured royal, so choosing that armour can create an unwinnable position. Prefer a hard reset in that case.
-6. A victory after the draw pile reaches zero still displays unspent ploys; no leaderboard or claim of an official scored run is made. The article only explicitly awards a score for wins without running out of cards.
-7. If the last ploy kills the last living royal while a blocked number is still in hand, automatically cycle to the next royal and deploy it first, then restore the blocked number for resolution (normally armour). The no-living-royal rule requires cycling, but does not specify this pending-card interaction; suspending the hand preserves the card and its obligation rather than discarding it or declaring defeat. Cycled cards retain their order beneath the deck; a twelfth kill still wins immediately.
+These conventions warrant a final rules review before calling this a definitive digital edition.
 
-These conventions should receive a final rules review before treating this candidate as a definitive digital edition.
+## Development and verification
 
-## Verification
-
-Engine and server tests use Node's built-in runner:
+No build/install step is needed for production. Development requires Node 22+, Python 3 and Quickshell; native UI checks additionally use Sway, grim, wtype and the QtTest QML module. No npm dependencies are required.
 
 ```sh
 npm test
+npm run test:qt
+# Pass a local Omarchy checkout at exactly v4.0.4:
+npm run test:native -- /path/to/omarchy-v4.0.4
+bash /path/to/omarchy-v4.0.4/bin/omarchy-plugin-validate .
 ```
 
-Browser tests use Playwright as a **development-only** dependency:
+- `engine.mjs` is the single canonical ESM engine imported by Node and QML. Narrow Qt compatibility changes avoid missing `structuredClone`, `at`, and `flatMap` APIs without maintaining a second implementation.
+- Node tests verify rules, invalid-action atomicity, all firing lanes, terminal states, the corrected pending-card regression, and 24 seeded full-deck simulations.
+- Qt parity replays **6,537 complete-result calls** recorded from those suites inside real Quickshell. Its mutation check must reject a deliberately broken twelfth-kill condition. Tests fail on absent completion markers, runtime/load errors, or mismatches.
+- The native harness freezes the whole production candidate with unmodified `Ui` and `Commons` from the pinned release, then starts an isolated headless Sway session. It drives actual QML actions, a QtTest mouse event through a real card MouseArea, and native keyboard input, tests the full softlock sequence and 54-card conservation, extraction, classic reset/refill, victory, opening replacement, confirmation, modes, Escape/reopen preservation, live palette changes, four bar edges and larger fonts. Harness IPC/fixtures exist only in `test/`, not production.
+- Screenshots, logs and source-file hashes go under ignored `test-results/native/`. Tests stop only their own compositor/Quickshell/input processes. Runtime directories are local test artifacts. The old browser UI/server and browser tests were removed rather than shipping a dual UI.
 
-```sh
-npm ci
-npx playwright install chromium
-npm run test:e2e
-```
-
-Or reuse a system Chromium without downloading a browser:
-
-```sh
-CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e
-```
-
-The browser suite starts and stops its own loopback server on port 4174. It exercises real DOM interactions, keyboard input, ploys, mode switching, restart confirmation, and a 390px mobile layout. Screenshots are written under ignored `test-results/`. Unit fixtures verify both rule sets, every firing direction, colour/suit restrictions, illegal-action atomicity, recycling, armour and terminal states. `npm start` is the application itself; there is no separate build step.
+This proves the **local candidate with exact-release components**, not live acceptance on an unavailable target machine or a full installed-shell rollout. In particular, user wallpaper/monitor-scale integration and the installed bar's registry/lifecycle must receive a short smoke test on the target before release.
 
 ## Files
 
-- `engine.mjs`: immutable game transitions and rule queries; no DOM or random draw dependence after setup.
-- `app.mjs`, `index.html`, `style.css`, `icon.svg`: responsive interface and original visuals.
-- `server.mjs`: local-only static app server with an asset allowlist and restrictive CSP.
-- `test/`: deterministic engine and server tests.
-- `e2e/`, `playwright.config.mjs`: browser interaction checks.
+Production: `manifest.json`, `BarWidget.qml`, `CannonButton.qml`, `engine.mjs`.
 
-Not yet provided: persisted games, theme-file integration, native desktop packaging, or a release installer. No system installation is required or performed.
+Tests: `test/engine.test.mjs`, `test/simulation.test.mjs`, `test/qt/`, `test/native/`.

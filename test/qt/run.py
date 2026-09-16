@@ -18,6 +18,7 @@ def qt_run(work):
                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, env=env)
     lines = []
     try:
+        assert p.stdout is not None
         selector = selectors.DefaultSelector()
         selector.register(p.stdout, selectors.EVENT_READ)
         end = time.monotonic() + 45
