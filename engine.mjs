@@ -1,7 +1,12 @@
+// Game state contains only JSON-compatible card records, arrays and scalars.
+// Keep one ESM implementation usable in both Node and Qt's JavaScript engine.
+const clone = (value) => JSON.parse(JSON.stringify(value));
+const flatMap = (items, fn) => [].concat(...items.map(fn));
+
 export const suits = ["S", "H", "C", "D"];
 export const symbols = { S: "♠", H: "♥", C: "♣", D: "♦", X: "✦" };
 export const color = (c) => (["H", "D"].includes(c?.suit) ? "red" : "black");
-export const top = (stack) => stack.at(-1);
+export const top = (stack) => stack[stack.length - 1];
 export const label = (c) =>
   c
     ? `${{ 0: "Joker", 1: "A", 11: "J", 12: "Q", 13: "K" }[c.rank] ?? c.rank}${symbols[c.suit]}`
@@ -39,7 +44,7 @@ export const slotNames = [
 ];
 export function deck() {
   return [
-    ...suits.flatMap((suit) =>
+    ...flatMap(suits, (suit) =>
       Array.from({ length: 13 }, (_, i) => ({
         id: `${suit}${i + 1}`,
         suit,
@@ -67,7 +72,7 @@ const affinity = (a, b) =>
         : 0;
 export function placements(s, card = s.pending) {
   if (!card || royal(card)) return [];
-  return s.grid.flatMap((stack, i) =>
+  return flatMap(s.grid, (stack, i) =>
     !stack.length ||
     (s.mode === "classic" && special(card)) ||
     top(stack).rank <= card.rank
@@ -76,7 +81,7 @@ export function placements(s, card = s.pending) {
   );
 }
 export function royalSlots(s, card = s.pending) {
-  const candidates = lanes.flatMap(([near], i) =>
+  const candidates = flatMap(lanes, ([near], i) =>
     s.royals[i] ? [] : [{ i, c: top(s.grid[near]) }],
   );
   const best = Math.max(
@@ -94,7 +99,7 @@ export function armourSlots(s) {
     (s.mode === "revised" && s.ploys.length)
   )
     return [];
-  const candidates = s.royals.flatMap((r, i) =>
+  const candidates = flatMap(s.royals, (r, i) =>
     r && !r.dead ? [{ i, r }] : [],
   );
   const best = Math.max(
@@ -195,7 +200,7 @@ export function createGame(mode = "revised", cards = shuffle(deck())) {
   if (!["classic", "revised"].includes(mode)) throw new Error("Unknown mode");
   const s = {
     mode,
-    deck: structuredClone(cards),
+    deck: clone(cards),
     grid: Array.from({ length: 9 }, () => []),
     royals: Array(12).fill(null),
     ploys: [],
@@ -241,7 +246,7 @@ function spend(s, rank) {
 // State transitions are atomic: an illegal action never mutates the caller's state.
 export function act(state, action) {
   requireThat(state.status === "playing", "Start a new game to play again.");
-  const s = structuredClone(state);
+  const s = clone(state);
   const { type, index, from } = action;
   const gridIndex = (i) => Number.isInteger(i) && i >= 0 && i < 9;
   if (type === "keep" || type === "replace") {
