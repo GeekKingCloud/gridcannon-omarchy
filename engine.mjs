@@ -140,6 +140,12 @@ function attack(s, trigger) {
     s.message = `Cannon fired. Defeated ${killed.join(" and ")}.`;
 }
 export const kills = (s) => s.royals.filter((r) => r?.dead).length;
+function nextRoyal(s) {
+  const next = s.deck.findIndex(royal);
+  requireThat(next >= 0, "No royal remains in the deck.");
+  s.deck.push(...s.deck.splice(0, next));
+  return s.deck.shift();
+}
 function settle(s) {
   if (kills(s) === 12) {
     s.status = "won";
@@ -167,6 +173,21 @@ function settle(s) {
   ) {
     s.status = "lost";
     s.message = "No cards or ploys remain. This siege is over.";
+  } else if (
+    s.mode === "revised" &&
+    s.stage === "play" &&
+    s.pending &&
+    !royal(s.pending) &&
+    !placements(s).length &&
+    !s.ploys.length &&
+    !s.royals.some((r) => r && !r.dead)
+  ) {
+    // A last-ploy kill can strand a blocked hand with nobody to armour.
+    // Suspend it while applying the no-living-royal cycling rule.
+    s.queue.push(s.pending);
+    s.pending = nextRoyal(s);
+    s.turns++;
+    s.message = `No living royals. Deploy ${label(s.pending)}, then resolve ${label(s.queue[0])}.`;
   }
   return s;
 }
@@ -247,12 +268,9 @@ export function act(state, action) {
       s.stage === "play" && !s.pending && s.deck.length,
       "Resolve the current card first, or use a ploy.",
     );
-    if (!s.royals.some((r) => r && !r.dead)) {
-      const next = s.deck.findIndex(royal);
-      requireThat(next >= 0, "No royal remains in the deck.");
-      s.deck.push(...s.deck.splice(0, next));
-    }
-    s.pending = s.deck.shift();
+    s.pending = s.royals.some((r) => r && !r.dead)
+      ? s.deck.shift()
+      : nextRoyal(s);
     s.turns++;
     s.message = `Drawn ${label(s.pending)}. Choose a highlighted position.`;
     if (s.mode === "revised" && special(s.pending)) {
@@ -277,6 +295,9 @@ export function act(state, action) {
     else if (s.stage === "replacement") {
       s.pending = s.queue.shift() ?? null;
       if (!s.pending) s.stage = "play";
+    } else if (s.queue.length) {
+      s.pending = s.queue.shift();
+      s.message = `Royal deployed. Resolve ${label(s.pending)} before drawing.`;
     }
   } else if (type === "place") {
     requireThat(

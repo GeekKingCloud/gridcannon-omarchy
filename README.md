@@ -72,6 +72,7 @@ The physical rules leave some digital details unspecified. This candidate uses t
 4. Armour similarity uses a royal's printed rank, not its accumulated health. Original v1's abbreviated armour rule uses the same suit/colour fallback as its general similarity rule. Original hard reset returns the selected stack under the deck, like its ordinary reset.
 5. Revised uses the author's stated 20/19 armour loss thresholds verbatim rather than silently changing the 20 boundary. Classic retains its original open-ended reset economy; it has no added forced-loss rule for an over-armoured royal, so choosing that armour can create an unwinnable position. Prefer a hard reset in that case.
 6. A victory after the draw pile reaches zero still displays unspent ploys; no leaderboard or claim of an official scored run is made. The article only explicitly awards a score for wins without running out of cards.
+7. If the last ploy kills the last living royal while a blocked number is still in hand, automatically cycle to the next royal and deploy it first, then restore the blocked number for resolution (normally armour). The no-living-royal rule requires cycling, but does not specify this pending-card interaction; suspending the hand preserves the card and its obligation rather than discarding it or declaring defeat. Cycled cards retain their order beneath the deck; a twelfth kill still wins immediately.
 
 These conventions should receive a final rules review before treating this candidate as a definitive digital edition.
 

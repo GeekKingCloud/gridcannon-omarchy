@@ -169,6 +169,76 @@ test("joker moves only the top, consumes once, fires and validates target", () =
   assert.equal(next.royals[0].dead, true);
   assert.equal(next.ploys.length, 0);
 });
+test("last joker killing the last living royal suspends a blocked card until the next royal", () => {
+  const prefix = "S6 S7 S8 H5 C3 C4 H3 D4 D5 S11 X0 D9 H2".split(" ");
+  const cards = deck();
+  let s = createGame("revised", [
+    ...prefix.map((id) => cards.find((c) => c.id === id)),
+    ...cards.filter((c) => !prefix.includes(c.id)),
+  ]);
+  function conserved() {
+    const all = [
+      ...s.deck,
+      ...s.grid.flat(),
+      ...s.ploys,
+      ...s.spent,
+      ...s.shame,
+      ...s.queue,
+      ...(s.pending ? [s.pending] : []),
+      ...s.royals.flatMap((r) => (r ? [r.card, ...r.armourCards] : [])),
+    ];
+    assert.deepEqual(
+      all.map((c) => c.id).sort(),
+      cards.map((c) => c.id).sort(),
+    );
+  }
+  function step(action) {
+    s = act(s, action);
+    conserved();
+  }
+  conserved();
+  for (const action of [
+    { type: "keep" },
+    { type: "draw" },
+    { type: "royal", index: 2 },
+    { type: "draw" },
+    { type: "draw" },
+    { type: "place", index: 4 },
+    { type: "draw" },
+  ])
+    step(action);
+  assert.equal(s.pending.id, "H2");
+  assert.deepEqual(placements(s), []);
+  const before = structuredClone(s);
+  step({ type: "move", from: 4, index: 8 });
+  assert.equal(kills(s), 1);
+  assert.equal(s.ploys.length, 0);
+  assert.equal(s.status, "playing");
+  assert.equal(s.pending.id, "S12");
+  assert.deepEqual(
+    s.queue.map((c) => c.id),
+    ["H2"],
+  );
+  const nextRoyal = before.deck.findIndex((c) => c.rank >= 11);
+  assert.deepEqual(s.deck, [
+    ...before.deck.slice(nextRoyal + 1),
+    ...before.deck.slice(0, nextRoyal),
+  ]);
+  assert.equal(s.turns, before.turns + 1);
+  step({ type: "royal", index: royalSlots(s)[0] });
+  assert.equal(s.pending.id, "H2");
+  assert.deepEqual(s.queue, []);
+  assert.deepEqual(placements(s), []);
+  assert.equal(armourSlots(s).length, 1);
+  const target = armourSlots(s)[0];
+  step({ type: "armour", index: target });
+  assert.equal(s.royals[target].armour, 2);
+  assert.equal(s.pending, null);
+  assert.equal(s.status, "playing");
+  step({ type: "draw" });
+  assert.equal(s.pending.id, "S13");
+});
+
 test("armour requires blocked placement and no revised ploys, ranks base royals not armour", () => {
   const s = fixture();
   s.grid = s.grid.map(() => [c(10)]);
@@ -225,6 +295,19 @@ test("twelve kills wins, including a final card on an exhausted deck", () => {
   s.grid[3] = [c(5)];
   s.pending = c(2);
   assert.equal(act(s, { type: "place", index: 6 }).status, "won");
+
+  // A final joker kill wins before trying to cycle another royal, even with
+  // a blocked number still in hand and no cards left in the deck.
+  s.grid = Array.from({ length: 9 }, () => [c(3)]);
+  s.grid[0] = [c(6)];
+  s.grid[3] = [c(5)];
+  s.grid[4].push(c(9));
+  s.ploys = [c(0, "X")];
+  assert.deepEqual(placements(s), []);
+  const won = act(s, { type: "move", from: 4, index: 6 });
+  assert.equal(won.status, "won");
+  assert.deepEqual(won.pending, s.pending);
+  assert.equal(won.deck.length, 0);
 });
 test("no living royal cycles non-royals including ploys under the deck", () => {
   const s = fixture();
