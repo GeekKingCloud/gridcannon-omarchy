@@ -6,7 +6,8 @@
   "scripts": {
     "test": "node --test test/*.test.mjs",
     "test:qt": "python3 test/qt/run.py --mutation",
-    "test:native": "python3 test/native/run.py"
+    "test:native": "python3 test/native/run.py",
+    "test:shell": "python3 test/full-shell/run.py"
   },
   "engines": {"node": ">=22"}
 }

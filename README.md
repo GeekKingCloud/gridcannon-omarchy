@@ -28,7 +28,7 @@ omarchy-shell geekkingcloud.gridcannon close
 omarchy-shell geekkingcloud.gridcannon toggle
 ```
 
-Remove using `omarchy plugin remove geekkingcloud.gridcannon` (interactive confirmation). Disabling/removing/unloading it ends the in-memory game. No daemon, service, theme files or persistent saved-game files require cleanup. These are instructions, **not actions performed by the test suite**. No installation on the owner's machine or publication has been performed.
+Remove using `omarchy plugin remove geekkingcloud.gridcannon` (interactive confirmation). For a copied local directory, Omarchy keeps a hidden `.geekkingcloud.gridcannon.bak.*` backup beside the removed plugin; it is not registered or loaded. Disabling/removing/unloading ends the in-memory game. No daemon, service, theme files or persistent saved-game files require cleanup. The full-shell smoke test exercises installation/removal only in a disposable test HOME. No installation on the owner's machine or publication has been performed.
 
 Closing and reopening the popup preserves the game, pending card and ploy selection because state belongs to the persistent bar widget, not the popup. A shell restart, plugin reload, or removing the widget discards that state. New game and mode changes require confirmation. There is no undo, timer or leaderboard.
 
@@ -103,10 +103,14 @@ bash /path/to/omarchy-v4.0.4/bin/omarchy-plugin-validate .
 - The native harness freezes the whole production candidate with unmodified `Ui` and `Commons` from the pinned release, then starts an isolated headless Sway session. It drives actual QML actions, a QtTest mouse event through a real card MouseArea, and native keyboard input, tests the full softlock sequence and 54-card conservation, extraction, classic reset/refill, victory, opening replacement, confirmation, modes, Escape/reopen preservation, live palette changes, four bar edges and larger fonts. Harness IPC/fixtures exist only in `test/`, not production.
 - Screenshots, logs and source-file hashes go under ignored `test-results/native/`. Tests stop only their own compositor/Quickshell/input processes. Runtime directories are local test artifacts. The old browser UI/server and browser tests were removed rather than shipping a dual UI.
 
-This proves the **local candidate with exact-release components**, not live acceptance on an unavailable target machine or a full installed-shell rollout. In particular, user wallpaper/monitor-scale integration and the installed bar's registry/lifecycle must receive a short smoke test on the target before release.
+- `npm run test:shell -- /path/to/omarchy-v4.0.4 /path/to/wlr-virtual-pointer-unstable-v1.xml` runs the **unmodified entire pinned shell** with its real registry and bar coordinator in another isolated HOME/Sway session. It enables the exact production files through the official CLI, checks duplicate-enable idempotence, clicks the real bar and game via a persistent compositor virtual pointer, draws by keyboard, compares game pixels across Escape/coordinator reopening, updates a watched theme override file and the normal theme IPC payload, then disables/re-enables/removes the plugin and checks registry/config/IPC/window cleanup. No fixture state or test hooks are added to production. Unrelated first-party services are explicitly disabled and session/system D-Bus are disconnected. This fixed 1200×900/default-font smoke additionally needs Pillow, a C compiler, pkg-config, wayland-client development files, wayland-scanner and the [wlr-protocols virtual-pointer XML](https://gitlab.freedesktop.org/wlroots/wlr-protocols/-/blob/master/unstable/wlr-virtual-pointer-unstable-v1.xml). Generated protocol code stays in ignored test output, not the plugin.
+- At this release, `~/.config/omarchy/shell.toml` is watched; current-theme `colors.toml` and `shell.toml` are **startup-only** loads. Normal live theme switches use `shell applyTheme` IPC. The test follows that contract rather than assuming every theme file is watched.
+- Full-shell screenshots, command transcript, production hashes and process cleanup proof go under `test-results/full-shell/`. Software-rendered captures are functional evidence, not publication-quality hardware screenshots.
+
+The candidate passes local component and full-shell smoke testing, **not acceptance on an unavailable target machine**. A short target check still needs the actual Hyprland session, touch input, wallpaper, monitor scale and interaction with the owner's other enabled plugins before release.
 
 ## Files
 
 Production: `manifest.json`, `BarWidget.qml`, `CannonButton.qml`, `engine.mjs`.
 
-Tests: `test/engine.test.mjs`, `test/simulation.test.mjs`, `test/qt/`, `test/native/`.
+Tests: `test/engine.test.mjs`, `test/simulation.test.mjs`, `test/qt/`, `test/native/`, `test/full-shell/`.
