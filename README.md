@@ -14,7 +14,7 @@ For a reviewed **local checkout**, copy only the production files into a new plu
 plugin="$HOME/.config/omarchy/plugins/geekkingcloud.gridcannon"
 mkdir -p "$(dirname "$plugin")"
 mkdir "$plugin"
-cp manifest.json BarWidget.qml CannonButton.qml engine.mjs "$plugin/"
+cp manifest.json BarWidget.qml CannonButton.qml engine.mjs README.md LICENSE "$plugin/"
 omarchy plugin validate "$plugin"
 omarchy-shell shell rescanPlugins
 omarchy plugin enable geekkingcloud.gridcannon
@@ -34,7 +34,7 @@ Closing and reopening the popup preserves the game, pending card and ploy select
 
 ## Controls
 
-- Click a legal grid/royal cell or action. Accent borders identify legal targets; a `›` marker and a subtle fill indicate keyboard selection. Suit glyphs keep colour groups distinguishable with a monochrome theme.
+- Click a legal grid/royal cell or action. Accent borders identify legal targets; a `›` marker and a subtle fill indicate keyboard selection. Hearts/diamonds use the theme's semantic red hue with lightness/saturation adjusted for readability. Spades/clubs use theme text ink: near-black on light themes, light neutral on dark themes. Only rank/suit markings receive colour, including the held card; borders and fills keep their existing theme roles. Suit glyphs also distinguish the groups without relying on colour alone.
 - **1–9:** grid cells in reading order. During the revised opening this replaces that cell once; choose **Keep deal** instead to skip replacement.
 - **D:** draw. **Tab / Shift+Tab:** cycle legal targets/actions. **Arrows:** spatial movement on the board; move among actions outside it. **Enter / Space:** activate the selected target, not an implicit draw.
 - **Extract:** select a grid stack. **Reassign:** select a source and then a distinct legal destination; **Escape** or **Cancel** cancels the selection without spending the ploy.
@@ -71,7 +71,9 @@ If a number cannot be placed and no ploys remain, add it as armour to the lowest
 
 Primary rules: [Tom Francis, “Gridcannon: A Single Player Game With Regular Playing Cards”](https://www.pentadact.com/2019-08-20-gridcannon-a-single-player-game-with-regular-playing-cards/). The visible **Version 2** section defines revised mode; expand **“Show the old version”** for the original v1. The intervening revisions discussion is not a third implemented mode.
 
-The author welcomes digital adaptations, requests attribution and a title beyond just “Gridcannon”, and credits Chris Thursten for armour. This implementation does not copy article text, footage, illustrations, commercial art or third-party plugin code. It uses original QML shapes/text and the installed font's suit glyphs. The inherited repository contains **no software LICENSE**; this candidate does not invent a licence or claim permission to relicense it. Choose/approve a code licence before public distribution. Adaptation permission is not a software licence grant.
+The author welcomes digital adaptations, requests attribution and a title beyond just “Gridcannon”, and credits Chris Thursten for armour. This implementation does not copy article text, footage, illustrations, commercial art or third-party plugin code. It uses original QML shapes/text and the installed font's suit glyphs.
+
+This implementation's code is **MIT licensed**; see [LICENSE](LICENSE). This matches [Omarchy's MIT licence at the targeted release](https://github.com/basecamp/omarchy/blob/c668141e9c42b13c80c9ca4ea108e11708c5e8a5/LICENSE). The code licence does not claim ownership of Tom Francis's game design or relicense his article, artwork, or any third-party dependencies. Gridcannon attribution and Chris Thursten's armour credit remain separate from the code licence.
 
 The source leaves some digital details unspecified. These conventions are retained from the corrected rules engine, not a new house variant:
 
