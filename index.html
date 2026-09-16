@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#1a1b26" />
+    <title>Omarchy Gridcannon</title>
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="./"
+        ><span class="brand-mark">▦</span
+        ><span
+          >GRIDCANNON<small>OMARCHY EDITION · LOCAL CANDIDATE</small></span
+        ></a
+      >
+      <nav>
+        <button id="rules-open">How to play <kbd>?</kbd></button
+        ><button id="new">New siege <kbd>N</kbd></button>
+      </nav>
+    </header>
+    <main>
+      <section class="intro">
+        <div>
+          <p class="eyebrow">ONE DECK. TWELVE TARGETS.</p>
+          <h1>Break the royal line.</h1>
+          <p class="subtitle">A quiet game of deliberate destruction.</p>
+        </div>
+        <label class="mode-label"
+          >RULESET<select id="mode">
+            <option value="revised">Revised · v2 / ploys & armour</option>
+            <option value="classic">Classic · v1 / resets & shame</option>
+          </select></label
+        >
+      </section>
+      <div class="workspace">
+        <section class="table" aria-label="Playing table">
+          <div class="table-top">
+            <span id="phase">OPENING DEAL</span
+            ><span id="mode-badge">REVISED / V2</span>
+          </div>
+          <div
+            id="board"
+            aria-label="Three by three grid surrounded by twelve royal slots"
+          ></div>
+          <div class="table-bottom">
+            <span>J · any suit</span><span>Q · same colour</span
+            ><span>K · same suit</span>
+          </div>
+        </section>
+        <aside>
+          <section class="panel stats" aria-label="Game statistics">
+            <div>
+              <strong id="kills">0<span>/12</span></strong
+              ><small>ROYALS DOWN</small>
+            </div>
+            <div>
+              <strong id="deck-count">0</strong><small>IN THE DECK</small>
+            </div>
+          </section>
+          <section class="panel command">
+            <div class="section-title">
+              COMMAND DECK <span id="turn">TURN 00</span>
+            </div>
+            <div id="pending"></div>
+            <p id="status" role="status" aria-live="polite"></p>
+            <p id="hint"></p>
+            <button class="primary" id="draw">Draw card <kbd>Space</kbd></button
+            ><button id="keep">Keep this deal <kbd>Enter</kbd></button>
+            <div id="terminal" hidden></div>
+          </section>
+          <section class="panel">
+            <div class="section-title" id="tools-title">YOUR PLOYS</div>
+            <div id="tools"></div>
+            <p id="tool-help" class="muted"></p>
+            <button id="cancel" hidden>Cancel selection <kbd>Esc</kbd></button>
+          </section>
+          <details class="panel field-guide">
+            <summary>Field guide</summary>
+            <p>
+              Play a card opposite a royal. The
+              <strong>two cards between</strong> become your payload. Their
+              combined matching value must meet the royal’s health.
+            </p>
+            <p>
+              Your trigger card never contributes damage. Shots don’t consume
+              cards. A corner can fire in two directions.
+            </p>
+            <p>
+              Highlighted slots are legal. Royal badges show current payload /
+              health. Hover or focus a grid slot for a shot preview.
+            </p>
+            <p>
+              <kbd>1</kbd>–<kbd>9</kbd> select grid positions in reading order.
+              Use Tab and Enter for all other controls.
+            </p>
+          </details>
+        </aside>
+      </div>
+      <footer>
+        <span>NO TIMER. NO TELEMETRY. JUST THE DECK.</span
+        ><a
+          href="https://www.pentadact.com/2019-08-20-gridcannon-a-single-player-game-with-regular-playing-cards/"
+          target="_blank"
+          rel="noreferrer"
+          >Based on Gridcannon by Tom Francis ↗</a
+        >
+      </footer>
+    </main>
+    <dialog id="rules">
+      <div class="dialog-top">
+        <h2>The art of the shot</h2>
+        <button id="rules-close" aria-label="Close rules">✕</button>
+      </div>
+      <p>
+        Defeat all twelve royals around the grid. Numbers go on equal or lower
+        numbers, or empty spaces. Royals go beside the highest eligible card of
+        their suit, then colour, then any suit. You choose ties.
+      </p>
+      <h3>Fire across the grid</h3>
+      <p>
+        Place at the far end of a row or column. Only the two intervening cards
+        attack: Jacks need 11 in any suit; Queens need 12 in their colour; Kings
+        need 13 in their suit. Armour increases that health. Defeated royals
+        still occupy their slots.
+      </p>
+      <h3>Revised · creator’s version 2</h3>
+      <p>
+        Start with nine number cards. You may replace one before play. Aces and
+        jokers are banked, never placed on the grid. Spend an ace to extract a
+        whole stack to the bottom of the deck; spend a joker to move one top
+        card to a legal destination, firing as normal.
+      </p>
+      <p>
+        A blocked draw with no ploys must become armour on the most similar
+        living royal (lowest rank of matching suit, then colour, then any).
+        Health of 20+, or 19+ for a King, ends the game. An empty deck with no
+        ploys also ends the game. Your winning score is unspent ploys.
+      </p>
+      <h3>Classic · creator’s original version 1</h3>
+      <p>
+        Start with an empty centre. Aces and jokers can be placed anywhere:
+        recycle the old stack under the deck and leave the special card on top.
+        A blocked draw can become armour, or go to shame while you recycle a
+        stack. When the deck is empty, choose a stack: its top card goes to
+        shame and the rest becomes the new deck. Aim for as little shame as
+        possible.
+      </p>
+      <p>
+        Neither version loses merely because one shot fails. When no living
+        royal remains, drawing cycles past non-royals and returns them under the
+        deck.
+      </p>
+      <p class="muted">
+        Digital conventions: only unoccupied border slots participate in royal
+        placement. Recycled stacks keep bottom-to-top order. A replacement deal
+        banks specials and queues royals until a number fills the slot. See
+        README for source ambiguities; these are not additional official rules.
+      </p>
+      <a
+        href="https://www.pentadact.com/2019-08-20-gridcannon-a-single-player-game-with-regular-playing-cards/"
+        target="_blank"
+        rel="noreferrer"
+        >Read Tom Francis’s original and revised rules ↗</a
+      >
+    </dialog>
+    <dialog id="confirm">
+      <h2>Start a fresh siege?</h2>
+      <p>Your current game will be replaced. There is no undo.</p>
+      <div class="dialog-actions">
+        <button id="confirm-no">Keep playing</button
+        ><button class="primary" id="confirm-yes">Deal new game</button>
+      </div>
+    </dialog>
+    <script type="module" src="app.mjs"></script>
+  </body>
+</html>
